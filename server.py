@@ -183,7 +183,7 @@ def route_create_order():
         if not (filename and filecontent):
             return Response("file", 400)
         with open(f"{DATA_DIR}/{user_id}/{filename}", "w", encoding="utf-8") as f:
-            f.write(filecontent.decode("UTF-8"))
+            f.write(filecontent.encode("UTF-8"))
             #command = f"{BLENDER_EXECUTABLE} {DATA_DIR}\\{user_id}\\{filename} -o {DATA_DIR}\\{user_id}\\{filename}_#.png -f 1 && pause"
             #command = f"{BLENDER_EXECUTABLE} --help && pause"
             #command = f"K: && cd 'Lukas Baginski\\blender-3.0.0-windows-x64' && .\\blender.exe {DATA_DIR}\\{user_id}\\{filename} -o {DATA_DIR}\\{user_id}\\{filename}_#.png -f 1"
