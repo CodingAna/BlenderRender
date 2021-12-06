@@ -175,7 +175,7 @@ def route_create_order():
         refresh_token_timeout(token)
         data = json.loads(request.data.decode("UTF-8"))
         file = data.get("file")
-        filename = werkzeug.secure_filename(file.filename)
+        filename = werkzeug.utils.secure_filename(file.filename)
         user_id = user["id"]
         if not os.path.exists(f"{DATA_DIR}/{user_id}"):
             os.mkdir(f"{DATA_DIR}/{user_id}")
