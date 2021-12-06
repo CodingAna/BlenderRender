@@ -227,4 +227,4 @@ def route_download(order_id: str):
         return send_file(f"{DATA_DIR}/{user_id}/{order_id}_1.png", cache_timeout=0)
     else: return Response("This file does not exist.", 404)
 
-app.run(port=80)
+app.run(host="0.0.0.0", port=80)
