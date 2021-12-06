@@ -10,7 +10,7 @@
     <h2>Neuer Auftrag</h2>
     <button id="create_abort">Erstellen</button>
     <button id="start" style="display: none;">Starten</button>
-    <input id="file" type="file" hidden>
+    <input id="file" name="file" type="file" hidden>
 
     <h2>Deine Aufträge</h2>
     <ul>
@@ -58,7 +58,7 @@
             console.log(read.result);
 
             var raw = JSON.stringify({
-              "file": f
+              "file": file
               //"content": read.result,
               //"userdata": hex
             });
