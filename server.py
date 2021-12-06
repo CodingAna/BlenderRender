@@ -179,6 +179,7 @@ def route_create_order():
         user_id = user["id"]
         if not os.path.exists(f"{DATA_DIR}/{user_id}"):
             os.mkdir(f"{DATA_DIR}/{user_id}")
+            print(f"created dir for {user_id}")
         if not (filename and filecontent):
             return Response("file", 400)
         with open(f"{DATA_DIR}/{user_id}/{filename}", "w", encoding="utf-8") as f:
