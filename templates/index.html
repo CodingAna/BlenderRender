@@ -58,7 +58,8 @@
             console.log(read.result);
 
             var raw = JSON.stringify({
-              "file": file
+              "file": file.files[0],
+              //file": file
               //"content": read.result,
               //"userdata": hex
             });
