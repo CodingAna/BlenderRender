@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, send_file, redirect, Response
-import subprocess, os, json, random, hashlib, time
+import subprocess, os, json, random, hashlib, time, werkzeug
 
 BLENDER_EXECUTABLE = "/home/lukas/Downloads/blender-2.93.6-linux-x64/blender"#"K:\\Lukas Baginski\\blender-3.0.0-windows-x64\\blender.exe"
 USER_DIR = "/home/lukas/Dokumente/GitHub/BlenderRender/Users"#"H:\\GitHub\\BlenderRender\\Users"
@@ -166,7 +166,7 @@ def route_login():
     #return render_template("login.html", error="unknown")
     return "unknown"
 
-@app.route("/create_order", methods=["GET", "POST"])
+@app.route("/create_order", methods=["POST"])
 def route_create_order():
     cookies = request.cookies
     token = cookies.get("token") # or get "userdata" from data if this isn't working
@@ -174,34 +174,34 @@ def route_create_order():
     if user:
         refresh_token_timeout(token)
         data = json.loads(request.data.decode("UTF-8"))
-        filename = data.get("file")
-        filecontent = data.get("content")
+        file = data.get("file")
+        filename = werkzeug.secure_filename(file.filename)
         user_id = user["id"]
         if not os.path.exists(f"{DATA_DIR}/{user_id}"):
             os.mkdir(f"{DATA_DIR}/{user_id}")
-            print(f"created dir for {user_id}")
-        if not (filename and filecontent):
+        if filename == "":
             return Response("file", 400)
-        with open(f"{DATA_DIR}/{user_id}/{filename}", "w", encoding="utf-8") as f:
-            f.write(filecontent.encode("UTF-8"))
-            #command = f"{BLENDER_EXECUTABLE} {DATA_DIR}\\{user_id}\\{filename} -o {DATA_DIR}\\{user_id}\\{filename}_#.png -f 1 && pause"
-            #command = f"{BLENDER_EXECUTABLE} --help && pause"
-            #command = f"K: && cd 'Lukas Baginski\\blender-3.0.0-windows-x64' && .\\blender.exe {DATA_DIR}\\{user_id}\\{filename} -o {DATA_DIR}\\{user_id}\\{filename}_#.png -f 1"
-            command = f"{BLENDER_EXECUTABLE} -b {DATA_DIR}/{user_id}/{filename} -o {DATA_DIR}/{user_id}/{filename}_#.png -f 1"
-            print(command)
-            process = subprocess.Popen(command.split())
-            pid = generate_id()
-            processes.append({ # Maybe use dict instead of list for faster access
-                "id": pid,
-                "process": process
-            })
-            orders.append({
-                "name": filename,
-                "id": generate_id(),
-                "from": user_id,
-                "timestamp": time.time(),
-                "process_id": pid
-            })
+        #with open(f"{DATA_DIR}/{user_id}/{filename}", "w", encoding="utf-8") as f:
+        #    f.write(filecontent)
+        file.save(f"{DATA_DIR}/{user_id}/{filename}")
+        #command = f"{BLENDER_EXECUTABLE} {DATA_DIR}\\{user_id}\\{filename} -o {DATA_DIR}\\{user_id}\\{filename}_#.png -f 1 && pause"
+        #command = f"{BLENDER_EXECUTABLE} --help && pause"
+        #command = f"K: && cd 'Lukas Baginski\\blender-3.0.0-windows-x64' && .\\blender.exe {DATA_DIR}\\{user_id}\\{filename} -o {DATA_DIR}\\{user_id}\\{filename}_#.png -f 1"
+        command = f"{BLENDER_EXECUTABLE} -b {DATA_DIR}/{user_id}/{filename} -o {DATA_DIR}/{user_id}/{filename}_#.png -f 1"
+        print(command)
+        process = subprocess.Popen(command.split())
+        pid = generate_id()
+        processes.append({ # Maybe use dict instead of list for faster access
+            "id": pid,
+            "process": process
+        })
+        orders.append({
+            "name": filename,
+            "id": generate_id(),
+            "from": user_id,
+            "timestamp": time.time(),
+            "process_id": pid
+        })
         if request.method == "GET": return redirect("/")
         elif request.method == "POST": return "success"
     if request.method == "GET": return redirect("/login")
