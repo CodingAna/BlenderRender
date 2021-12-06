@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="de" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>BlenderRender</title>
+  </head>
+  <body>
+    <h1>Anmelden</h1>
+    {% if error %}<span>Error: {{ error }}</span>{% endif %}
+
+    <input id="username" type="text" placeholder="Benutzername">
+    <br>
+    <input id="password" type="password" placeholder="Passwort">
+    <br>
+    <button id="login_btn">Anmelden</button>
+
+    <script src="/static/js/sha3.js"></script>
+    <script>
+    let login_btn = document.getElementById("login_btn");
+    window._type = "register";
+    login_btn.onclick = () => {
+      let username = document.getElementById("username").value;
+      let password = document.getElementById("password").value;
+      let hash = sha3_512.create();
+      hash.update(username + password);
+      let hex = hash.hex();
+      console.log(hex);
+
+      if (window._type === "register") {
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+          "type": "register",
+          "userdata": hex,
+          "username": username,
+          "password": password
+        });
+
+        var requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+
+        fetch("/login", requestOptions)
+          .then(response => response.text())
+          .then(result => {
+            console.log(result);
+            if (result === password) console.log("Password is not strong enough.");
+            else if (result === "exists") console.log("This user exists already.");
+            else if (result === "userdata") console.log("Invalid login data.");
+            else if (result === "unknown") console.log("Unknown error. Try again.");
+            document.cookie = "token=" + result + "; path=/; SameSite=Strict;";
+            window.location.replace("/");
+          })
+          .catch(error => console.log('error', error));
+      } else if (window._type === "login") {
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        var raw = JSON.stringify({
+          "type": "login",
+          "userdata": hex
+        });
+
+        var requestOptions = {
+          method: 'POST',
+          headers: myHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+
+        fetch("/login", requestOptions)
+          .then(response => response.text())
+          .then(result => {
+            console.log(result);
+            if (result === password) console.log("Password is not strong enough.");
+            else if (result === "exists") console.log("This user exists already.");
+            else if (result === "userdata") console.log("Invalid login data.");
+            else if (result === "unknown") console.log("Unknown error. Try again.");
+            document.cookie = "token=" + result + "; path=/; SameSite=Strict;";
+            window.location.replace("/");
+          })
+          .catch(error => console.log('error', error));
+      }
+    }
+    </script>
+  </body>
+</html>

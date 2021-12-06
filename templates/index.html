@@ -7,11 +7,81 @@
   <body>
     <h1>Hallo {{ username }}</h1>
 
+    <h2>Neuer Auftrag</h2>
+    <button id="create_abort">Erstellen</button>
+    <button id="start" style="display: none;">Starten</button>
+    <input id="file" type="file" hidden>
+
     <h2>Deine Aufträge</h2>
     <ul>
       {% for order in orders %}
       <li>{{ order.name }} {% if order.rendered %}<a href="/download/{{ order.id }}"></a>{% endif %}</li>
       {% endfor %}
     </ul>
+
+
+    <script src="/static/js/sha3.js"></script>
+    <script>
+    let hash = sha3_512.create();
+    hash.update("UsernamePassword");
+    let hex = hash.hex();
+    console.log(hex);
+
+    let create_abort = document.getElementById("create_abort");
+    let start = document.getElementById("start");
+    let file = document.getElementById("file");
+    create_abort.onclick = () => {
+      //open-file dialog window
+      if (create_abort.innerHTML === "Erstellen") file.click();
+      else if (create_abort.innerHTML === "Abbrechen") {
+        create_abort.innerHTML = "Erstellen";
+        start.style.display = "none";
+      }
+    }
+    file.onchange = () => {
+      console.log("changed file");
+      create_abort.innerHTML = "Abbrechen";
+      start.style.display = "inline";
+    }
+    start.onclick = () => {
+      if (start.style.display === "inline") {
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        console.log(file);
+        let f = file.files[0];
+        let read = new FileReader();
+
+        read.readAsBinaryString(f);
+
+        read.onloadend = function(){
+            console.log(read.result);
+
+            var raw = JSON.stringify({
+              "file": f.name,
+              "content": read.result
+              //"userdata": hex,
+            });
+
+            var requestOptions = {
+              method: 'POST',
+              headers: myHeaders,
+              body: raw,
+              redirect: 'follow'
+            };
+
+            fetch("/create_order", requestOptions)
+              .then(response => response.text())
+              .then(result => {
+                console.log(result);
+                if (result === "success") window.location.replace("/");
+                else if (result === "token") window.location.replace("/login");
+                //document.cookie = "token=" + result + "; path=/; SameSite=Strict;";
+              })
+              .catch(error => console.log('error', error));
+        }
+      }
+    }
+    </script>
   </body>
 </html>
