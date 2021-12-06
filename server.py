@@ -1,26 +1,26 @@
 from flask import Flask, render_template, request, send_file, redirect, Response
 import subprocess, os, json, random, hashlib, time
 
-BLENDER_EXECUTABLE = "K:\\Lukas Baginski\\blender-3.0.0-windows-x64\\blender.exe"#"/home/lukas/Downloads/blender-2.93.6-linux-x64/blender"
-USER_DIR = "H:\\GitHub\\BlenderRender\\Users"#"~/Dokumente/GitHub/BlenderRender/Users"
-DATA_DIR = "H:\\GitHub\\BlenderRender\\Data"#"~/Dokumente/GitHub/BlenderRender/Data"
+BLENDER_EXECUTABLE = "/home/lukas/Downloads/blender-2.93.6-linux-x64/blender"#"K:\\Lukas Baginski\\blender-3.0.0-windows-x64\\blender.exe"
+USER_DIR = "~/Dokumente/GitHub/BlenderRender/Users"#"H:\\GitHub\\BlenderRender\\Users"
+DATA_DIR = "~/Dokumente/GitHub/BlenderRender/Data"#"H:\\GitHub\\BlenderRender\\Data"
 TOKEN_DURABILITY = 1 * 60 * 60 * 6 # 1s 1min 1h 6h
 
 app = Flask(__name__)
 
 users = []
-if os.path.exists(DATA_DIR + "\\users.json"):
-    with open(DATA_DIR + "\\users.json") as f:
+if os.path.exists(DATA_DIR + "/users.json"):
+    with open(DATA_DIR + "/users.json") as f:
         users = json.loads(f.read())
 
 orders = []
-if os.path.exists(DATA_DIR + "\\orders.json"):
-    with open(DATA_DIR + "\\orders.json") as f:
+if os.path.exists(DATA_DIR + "/orders.json"):
+    with open(DATA_DIR + "/orders.json") as f:
         orders = json.loads(f.read())
 
 processes = []
-if os.path.exists(DATA_DIR + "\\processes.json"):
-    with open(DATA_DIR + "\\processes.json") as f:
+if os.path.exists(DATA_DIR + "/processes.json"):
+    with open(DATA_DIR + "/processes.json") as f:
         processes = json.loads(f.read())
 
 def check_token(token: str) -> bool:
@@ -32,6 +32,7 @@ def check_token(token: str) -> bool:
     #print(token.split("_"))
     #if token.split("_")[0] == "": return False
     #if int(token.split("_")[1]) < int(time.time()): return False
+    # Check for time!!!
 
     print("not failed yet")
 
@@ -176,15 +177,16 @@ def route_create_order():
         filename = data.get("file")
         filecontent = data.get("content")
         user_id = user["id"]
-        if not os.path.exists(f"{DATA_DIR}\\{user_id}"):
-            os.mkdir(f"{DATA_DIR}\\{user_id}")
+        if not os.path.exists(f"{DATA_DIR}/{user_id}"):
+            os.mkdir(f"{DATA_DIR}/{user_id}")
         if not (filename and filecontent):
             return Response("file", 400)
-        with open(f"{DATA_DIR}\\{user_id}\\{filename}", "w", encoding="utf-8") as f:
+        with open(f"{DATA_DIR}/{user_id}/{filename}", "w", encoding="utf-8") as f:
             f.write(filecontent)
             #command = f"{BLENDER_EXECUTABLE} {DATA_DIR}\\{user_id}\\{filename} -o {DATA_DIR}\\{user_id}\\{filename}_#.png -f 1 && pause"
             #command = f"{BLENDER_EXECUTABLE} --help && pause"
-            command = f"K: && cd 'Lukas Baginski\\blender-3.0.0-windows-x64' && .\\blender.exe {DATA_DIR}\\{user_id}\\{filename} -o {DATA_DIR}\\{user_id}\\{filename}_#.png -f 1"
+            #command = f"K: && cd 'Lukas Baginski\\blender-3.0.0-windows-x64' && .\\blender.exe {DATA_DIR}\\{user_id}\\{filename} -o {DATA_DIR}\\{user_id}\\{filename}_#.png -f 1"
+            command = f"{BLENDER_EXECUTABLE} -b {DATA_DIR}/{user_id}/{filename} -o {DATA_DIR}/{user_id}/{filename}_#.png -f 1"
             print(command)
             process = subprocess.Popen(command.split())
             pid = generate_id()
@@ -221,8 +223,8 @@ def route_download(order_id: str):
         return Response("You are not allowed to download this.", 403)
     user_id = user["id"]
     order_filename = get_orders(user["id"])
-    if os.path.isfile(f"{DATA_DIR}\\{user_id}\\{order_id}_1.png"):
-        return send_file(f"{DATA_DIR}\\{user_id}\\{order_id}_1.png", cache_timeout=0)
+    if os.path.isfile(f"{DATA_DIR}/{user_id}/{order_id}_1.png"):
+        return send_file(f"{DATA_DIR}/{user_id}/{order_id}_1.png", cache_timeout=0)
     else: return Response("This file does not exist.", 404)
 
 app.run(port=80)
