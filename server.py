@@ -173,7 +173,8 @@ def route_create_order():
     user = check_token(token)
     if user:
         refresh_token_timeout(token)
-        data = json.loads(request.data.decode("UTF-8"))
+        print(request.data)
+        #data = json.loads(request.data.decode("UTF-8"))
         file = request.files["file"]#data.get("file")
         print(file)
         print("after file")
@@ -191,7 +192,7 @@ def route_create_order():
         #command = f"{BLENDER_EXECUTABLE} {DATA_DIR}\\{user_id}\\{filename} -o {DATA_DIR}\\{user_id}\\{filename}_#.png -f 1 && pause"
         #command = f"{BLENDER_EXECUTABLE} --help && pause"
         #command = f"K: && cd 'Lukas Baginski\\blender-3.0.0-windows-x64' && .\\blender.exe {DATA_DIR}\\{user_id}\\{filename} -o {DATA_DIR}\\{user_id}\\{filename}_#.png -f 1"
-        command = f"{BLENDER_EXECUTABLE} -b {DATA_DIR}/{user_id}/{filename} -o {DATA_DIR}/{user_id}/{filename}_#.png -f 1"
+        command = f"{BLENDER_EXECUTABLE} -b -P ./use_gpu.py {DATA_DIR}/{user_id}/{filename} -E CYCLES -t 0 -o {DATA_DIR}/{user_id}/{filename}_#.png -f 1"
         print(command)
         process = subprocess.Popen(command.split())
         pid = generate_id()
@@ -204,7 +205,8 @@ def route_create_order():
             "id": generate_id(),
             "from": user_id,
             "timestamp": time.time(),
-            "process_id": pid
+            "process_id": pid,
+            "rendered": True
         })
         if request.method == "GET": return redirect("/")
         elif request.method == "POST": return "success"
