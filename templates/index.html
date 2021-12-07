@@ -2,6 +2,7 @@
 <html lang="de" dir="ltr">
   <head>
     <meta charset="utf-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <title>BlenderRender</title>
   </head>
   <body>
@@ -10,12 +11,12 @@
     <h2>Neuer Auftrag</h2>
     <button id="create_abort">Erstellen</button>
     <button id="start" style="display: none;">Starten</button>
-    <input id="file" name="file" type="file" hidden>
+    <form id="fileform" method="POST"><input id="file" name="file" type="file" hidden></form>
 
     <h2>Deine Aufträge</h2>
     <ul>
       {% for order in orders %}
-      <li>{{ order.name }} {% if order.rendered %}<a href="/download/{{ order.id }}"></a>{% endif %}</li>
+      <li>{{ order.name }} (<a href="/download/{{ order.id }}">Download</a>)</li>
       {% endfor %}
     </ul>
 
@@ -56,7 +57,22 @@
 
         read.onloadend = function(){
             console.log(read.result);
+            console.log(new FormData($("#fileform")[0]));
 
+            $.ajax({
+              type: "POST",
+              url: "/create_order",
+              data: new FormData($("#fileform")[0]),
+              processData: false,
+              contentType: false,
+              success: (result) => {
+                console.log(result);
+                if (result === "success") window.location.replace("/");
+                else if (result === "token") window.location.replace("/login");
+              }
+            });
+
+            /*
             var raw = JSON.stringify({
               "file": file.files[0],
               //file": file
@@ -80,6 +96,7 @@
                 //document.cookie = "token=" + result + "; path=/; SameSite=Strict;";
               })
               .catch(error => console.log('error', error));
+              */
         }
       }
     }
