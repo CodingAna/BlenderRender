@@ -24,21 +24,13 @@ if os.path.exists(DATA_DIR + "/processes.json"):
         processes = json.loads(f.read())
 
 def check_token(token: str) -> bool:
-    print(f"check_token({token})")
-    print(token == None)
-    #print(not "_" in token)
     if token == None: return False
-    #if not "_" in token: return False
-    #print(token.split("_"))
-    #if token.split("_")[0] == "": return False
-    #if int(token.split("_")[1]) < int(time.time()): return False
-    # Check for time!!!
-
-    print("not failed yet")
-
     for user in users:
-        if user["token"].split("_")[0] == token:
-            return user
+        user_token, user_token_time = user["token"].split("_")
+        if user_token == token:
+            if user_token_time <= int(time.time()):
+                return user
+            return False
     return False
 
 def generate_token(length: int = 16) -> str:
@@ -173,33 +165,26 @@ def route_create_order():
     user = check_token(token)
     if user:
         refresh_token_timeout(token)
-        print(request.data)
-        #data = json.loads(request.data.decode("UTF-8"))
-        file = request.files["file"]#data.get("file")
-        print(file)
-        print("after file")
-        filename = werkzeug.utils.secure_filename(file.filename)
-        print(filename)
-        print("after filename")
         user_id = user["id"]
-        if not os.path.exists(f"{DATA_DIR}/{user_id}"):
-            os.mkdir(f"{DATA_DIR}/{user_id}")
+
+        file = request.files["file"]
+        filename = werkzeug.utils.secure_filename(file.filename)
         if filename == "":
             return Response("file", 400)
-        #with open(f"{DATA_DIR}/{user_id}/{filename}", "w", encoding="utf-8") as f:
-        #    f.write(filecontent)
+
+        if not os.path.exists(f"{DATA_DIR}/{user_id}"):
+            os.mkdir(f"{DATA_DIR}/{user_id}")
         file.save(f"{DATA_DIR}/{user_id}/{filename}")
-        #command = f"{BLENDER_EXECUTABLE} {DATA_DIR}\\{user_id}\\{filename} -o {DATA_DIR}\\{user_id}\\{filename}_#.png -f 1 && pause"
-        #command = f"{BLENDER_EXECUTABLE} --help && pause"
-        #command = f"K: && cd 'Lukas Baginski\\blender-3.0.0-windows-x64' && .\\blender.exe {DATA_DIR}\\{user_id}\\{filename} -o {DATA_DIR}\\{user_id}\\{filename}_#.png -f 1"
+
         command = f"{BLENDER_EXECUTABLE} -b -P ./use_gpu.py {DATA_DIR}/{user_id}/{filename} -E CYCLES -t 0 -o {DATA_DIR}/{user_id}/{filename}_#.png -f 1"
-        print(command)
         process = subprocess.Popen(command.split())
         pid = generate_id()
+        
         processes.append({ # Maybe use dict instead of list for faster access
             "id": pid,
             "process": process
         })
+
         orders.append({
             "name": filename,
             "id": generate_id(),
@@ -208,6 +193,7 @@ def route_create_order():
             "process_id": pid,
             "rendered": True
         })
+
         if request.method == "GET": return redirect("/")
         elif request.method == "POST": return "success"
     if request.method == "GET": return redirect("/login")
@@ -222,16 +208,19 @@ def route_get_progress():
 @app.route("/download/<order_id>")
 def route_download(order_id: str):
     cookies = request.cookies
-
-    username = cookies.get("username")
-    if username == None: return redirect("/login")
-    user = users.get(username)
-    if not user["orders"].get(order_id):
-        return Response("You are not allowed to download this.", 403)
-    user_id = user["id"]
-    order_filename = get_orders(user["id"])
-    if os.path.isfile(f"{DATA_DIR}/{user_id}/{order_id}_1.png"):
-        return send_file(f"{DATA_DIR}/{user_id}/{order_id}_1.png", cache_timeout=0)
-    else: return Response("This file does not exist.", 404)
+    token = cookies.get("token") # or get "userdata" from data if this isn't working
+    user = check_token(token)
+    if user:
+        refresh_token_timeout(token)
+        user_id = user["id"]
+        user_orders = get_orders(user["id"])
+        for order in user_oders:
+            if order["id"] == order_id:
+                order_name = order["name"]
+                if os.path.isfile(f"{DATA_DIR}/{user_id}/{order_name}_1.png"):
+                    return send_file(f"{DATA_DIR}/{user_id}/{order_name}_1.png", cache_timeout=0)
+                else: return Response("This file does not exist.", 404)
+        return Response("forbidden", 401)
+    return redirect("/login")
 
 app.run(host="0.0.0.0", port=80)
