@@ -24,10 +24,6 @@
     <script src="/static/js/sha3.js"></script>
     <script>
     let hash = sha3_512.create();
-    hash.update("UsernamePassword");
-    let hex = hash.hex();
-    console.log(hex);
-
     let create_abort = document.getElementById("create_abort");
     let start = document.getElementById("start");
     let file = document.getElementById("file");
@@ -71,32 +67,6 @@
                 else if (result === "token") window.location.replace("/login");
               }
             });
-
-            /*
-            var raw = JSON.stringify({
-              "file": file.files[0],
-              //file": file
-              //"content": read.result,
-              //"userdata": hex
-            });
-
-            var requestOptions = {
-              method: 'POST',
-              headers: myHeaders,
-              body: raw,
-              redirect: 'follow'
-            };
-
-            fetch("/create_order", requestOptions)
-              .then(response => response.text())
-              .then(result => {
-                console.log(result);
-                if (result === "success") window.location.replace("/");
-                else if (result === "token") window.location.replace("/login");
-                //document.cookie = "token=" + result + "; path=/; SameSite=Strict;";
-              })
-              .catch(error => console.log('error', error));
-              */
         }
       }
     }
