@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, send_file, redirect, Response
 import subprocess, os, json, random, hashlib, time, werkzeug
 
-BLENDER_EXECUTABLE = "/home/lukas/Downloads/blender-2.93.6-linux-x64/blender"#"K:\\Lukas Baginski\\blender-3.0.0-windows-x64\\blender.exe"
-USER_DIR = "/home/lukas/Dokumente/GitHub/BlenderRender/Users"#"H:\\GitHub\\BlenderRender\\Users"
-DATA_DIR = "/home/lukas/Dokumente/GitHub/BlenderRender/Data"#"H:\\GitHub\\BlenderRender\\Data"
+BLENDER_EXECUTABLE = "/home/lukas/Downloads/blender-2.93.6-linux-x64/blender"
+USER_DIR = "/home/lukas/Dokumente/GitHub/BlenderRender/Users"
+DATA_DIR = "/home/lukas/Dokumente/GitHub/BlenderRender/Data"
 TOKEN_DURABILITY = 1 * 60 * 60 * 6 # 1s 1min 1h 6h
 
 app = Flask(__name__)
