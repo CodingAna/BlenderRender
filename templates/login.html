@@ -24,9 +24,8 @@
       let hash = sha3_512.create();
       hash.update(username + password);
       let hex = hash.hex();
-      console.log(hex);
 
-      if (window._type === "register") {
+      if (window._type === "register") { // TODO: don't execute the same code twice, remove this if and put make ajax request!
         var myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
 
